@@ -1,0 +1,20 @@
+{
+  "name": "mock-server",
+  "version": "1.0.0",
+  "description": "Mock Server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "extract": "node extract.js"
+  },
+  "author": "Tushar Kumar",
+  "dependencies": {
+    "cors": "*",
+    "express": "*",
+    "fs-extra": "*",
+    "nodemon": "*",
+    "js-beautify": "*",
+    "table": "*",
+    "lodash": "*"
+  }
+}
