@@ -25,6 +25,7 @@ app.use('/', express.static('./public'));
 
 
 const ignoreExt = ['.ico', '.svg', '.jpg', '.gif', '.font' ];
+let delayCounter = 0;
 
 app.all("*", (req, res) => {
     try {
@@ -54,7 +55,11 @@ app.all("*", (req, res) => {
 		fileName = fileName.replace('.json', '');
 		let filePath = path.join(folder, fileName);
 		const fileData = fse.readJsonSync(filePath + ".json");
-		res.json(fileData);
+
+		setTimeout(() => {
+			res.json(fileData);
+			--delayCounter;
+		}, ++delayCounter * 1000);
 
 	} catch(err) {
 
