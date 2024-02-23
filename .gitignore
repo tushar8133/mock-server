@@ -1,6 +1,4 @@
 **/*
 !package.json
-!index.js
-!server.js
-!extract.js
+!*.js
 !*.http
