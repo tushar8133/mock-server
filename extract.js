@@ -4,55 +4,28 @@ const path = require('path');
 const beautify = require('js-beautify');
 const table = require('table').table;
 const _ = require('lodash');
+const config = require('./config.js');
 
-let harFile = null;
-let allowMerge = false;
-let verbose = false;
-let folderName = null;
+let harFile = config.HAR_FILE.replace(/\.har$/, '') + '.har';
+let folderName = harFile.replace(/\.har$/, '');
+let allowMerge = config.ALLOW_MERGE;
+let verbose = config.VERBOSE;
 
-try {
-    const args = process.argv.slice(2);
-    const commandInput = args[0].replace(/\.har$/, '');
-    harFile = commandInput + '.har';
-    allowMerge = args.includes('--merge');
-    verbose = args.includes('--verbose');
-    folderName = commandInput;
-    if (!fse.pathExistsSync(harFile)) {
-        throw new Error();
-    }
-} catch (e) {
-    console.log(`Something's wrong! Try like this: \x1b[7m> node extract.js file[.har] [--merge] [--verbose]\x1b[0m`);
+if (!fse.pathExistsSync(harFile)) {
+    console.log(`Something's wrong! Review 'config.js' file`);
     return;
 }
 
 fse.removeSync(folderName);
 
-const mimeTypesMapping = {
-	'application/javascript': '.js',
-	'application/json': '.json',
-	'application/x-javascript': '.js',
-	'image/svg+xml': '.svg',
-	'text/css': '.css',
-	'text/html': '.html',
-	'text/javascript': '.js',
-	'text/plain': '.txt',
-};
+const allowedRestMethods = config.ALLOWED_METHODS;
 
-const allowedRestMethods = [
-    'GET',
-    'POST',
-    'PUT',
-    'PATCH',
-    'DELETE'
-];
-
-const onlyAllowedMimes = [
-    // 'application/json'
-];
+const onlyAllowedMimes = config.FILTER_MIMES;
 
 const notes = {
-    method: [],
+    root: [],
     zero: [],
+    method: [],
     mimes: [],
     duplicates: [],
     merged: [],
@@ -63,20 +36,25 @@ const notes = {
 // const entries = JSON.parse(fse.readFileSync(harFile)).log.entries;
 const entries = fse.readJsonSync(harFile).log.entries;
 entries.forEach((entry) => {
+
+    const resource = new URL(entry.request.url).pathname.split('/').pop();
     
     try {
 
-        const resource = new URL(entry.request.url).pathname.split('/').pop();
-        
-        const allowedMethods = allowedRestMethods.includes(entry.request.method);
-        if (!allowedMethods) {
-            notes.method.push(`${entry.request.method}-${resource}`);
+        if (!resource) {
+            notes.root.push(`${resource}`);
             return;
         }
-        
+
         const isContentZero = entry.response.content.size;
         if (isContentZero === 0) {
             notes.zero.push(`${resource}`);
+            return;
+        }
+
+        const allowedMethods = allowedRestMethods.includes(entry.request.method);
+        if (!allowedMethods) {
+            notes.method.push(`${entry.request.method}-${resource}`);
             return;
         }
 
@@ -87,46 +65,41 @@ entries.forEach((entry) => {
             return;
         }
 
-        const rawFileName = (resource === 'graphql') ? JSON.parse(entry.request.postData.text).operationName : resource;
-        const fileNameWithExtn = rawFileName.includes('.') ? rawFileName : rawFileName + (mimeTypesMapping[mimeType] || '');
-        const extn = fileNameWithExtn.split('.').pop();
-        const fullPath = path.join(folderName, fileNameWithExtn);
-        const isFileExist = fse.pathExistsSync(fullPath);
-        let data = entry.response.content.text;
-        let options = {};
+        if (resource.includes('.')) {
+            let data = entry.response.content.text;
+            let options = {};
+            if (entry.response.content.encoding === 'base64') {
+                data = data.split(';base64,').pop();
+                options.encoding = 'base64';
+            }
+            const fullPath = path.join(folderName, resource);
+            const isFileExist = fse.pathExistsSync(fullPath);
+            isFileExist ? notes.duplicates.push(`${resource}`) : notes.created.push(`${resource}`);
+            fse.outputFileSync(fullPath, String(data), options);
+            return;
+        }
         
-        const isBase64 = entry.response.content.encoding;
-        if (isBase64 === 'base64') {
-            data = data.split(';base64,').pop();
-            options.encoding = 'base64'
+        const rawFileName = (resource === 'graphql') ? JSON.parse(entry.request.postData.text).operationName : resource;
+        const fullPath = path.join(folderName, rawFileName + '.json');
+        let data = entry.response.content.text;
+
+        if (!allowMerge) {
+            const isFileExist = fse.pathExistsSync(fullPath);
+            isFileExist ? notes.duplicates.push(`${resource}`) : notes.created.push(`${resource}`);
+            fse.outputFileSync(fullPath, String(data));
+            return;
         }
 
+        const isFileExist = fse.pathExistsSync(fullPath);
         if (isFileExist) {
-            try {
-                const isMimeCombinable = ['text/plain', 'application/json'].includes(mimeType);
-                if (allowMerge && isMimeCombinable) {
-                    const newData = JSON.parse(data);
-                    const oldData = fse.readJsonSync(fullPath, { throws: false });
-                    const mergedData = JSON.stringify(_.merge(oldData, newData));
-                    data = mergedData;
-                    notes.merged.push(`${resource} ${rawFileName}`);
-                } else {
-                    throw new Error();
-                }
-            } catch(e) {
-                notes.duplicates.push(`${resource} ${rawFileName}`);
-            }
-        } else {
-            notes.created.push(`${resource} ${rawFileName}`);
+            const newData = JSON.parse(data);
+            const oldData = fse.readJsonSync(fullPath, { throws: false });
+            const mergedData = JSON.stringify(_.merge(oldData, newData));
+            data = beautify(mergedData);
         }
-        
-        switch(extn) {
-            case 'json': data = beautify(data); break;
-            case 'html': data = beautify.html(data); break;
-            case 'css': data = beautify.css(data); break;
-        }
-        
-        fse.outputFileSync(fullPath, String(data), options);
+        isFileExist ? notes.merged.push(`${resource} ${rawFileName}`) : notes.created.push(`${resource} ${rawFileName}`);
+
+        fse.outputFileSync(fullPath, String(data));
 
     } catch (e) {
         notes.error.push(`${resource}-${e}`);
@@ -140,14 +113,17 @@ const summary = [
     [notes.duplicates.length, "Skipped Duplicate Files"],
     [notes.merged.length, "Files Merged"],
     [notes.method.length, "Skipped Unsupported Rest Methods"],
+    [notes.root.length, "Skipped Root Page"],
     [notes.zero.length, "Skipped Zero Size Entries"],
     [notes.mimes.length, "Skipped Not Allowed Mimes (if mentioned)"],
     [notes.error.length, "Entries with Errors"],
     [Object.values(notes).reduce((acc, item) => acc - item.length, entries.length), "Balance (Should remain zero)"],
 ];
 
-console.log(table(summary));
-
 if (verbose) {
+    console.log(table(summary));
+}
+
+if (notes.error.length) {
     console.log(notes.error);
 }
