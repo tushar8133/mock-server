@@ -3,4 +3,4 @@
 !index.js
 !server.js
 !extract.js
-!hit.http
+!*.http
