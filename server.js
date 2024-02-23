@@ -7,6 +7,7 @@ const config = require('./config.js');
 
 const folderName = config.HAR_FILE.replace(/\.har$/, '');
 const folder = path.join(config.DEFAULT_PATH, folderName);
+let delayCounter = 0;
 
 app.use(cors());
 app.use(express.json());
@@ -46,7 +47,11 @@ app.all('*', (req, res) => {
 			return;
 		}
 		const fileData = fse.readJsonSync(fullPath);
-		res.json(fileData);
+		
+		setTimeout(() => {
+			res.json(fileData);
+			--delayCounter;
+		}, ++delayCounter * config.RESPONSE_DELAY);
 
 	} catch(err) {
 
