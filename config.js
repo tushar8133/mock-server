@@ -16,10 +16,17 @@ const ALLOWED_METHODS = [
     'PUT',
     'PATCH',
     'DELETE'
-]
+];
 
 const FILTER_MIMES = [
-    // 'application/json'
+	// 'application/json',
+    // 'application/javascript',
+	// 'application/x-javascript',
+	// 'image/svg+xml',
+	// 'text/css',
+	// 'text/html',
+	// 'text/javascript',
+	// 'text/plain'
 ]
 
 module.exports = {

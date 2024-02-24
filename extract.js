@@ -78,8 +78,8 @@ entries.forEach((entry) => {
             fse.outputFileSync(fullPath, String(data), options);
             return;
         }
-        
-        const rawFileName = (resource === 'graphql') ? JSON.parse(entry.request.postData.text).operationName : resource;
+
+        const rawFileName = (resource.toLowerCase() === 'graphql') ? JSON.parse(entry.request.postData.text).operationName : resource;
         const fullPath = path.join(folderName, rawFileName + '.json');
         let data = entry.response.content.text;
 
