@@ -53,7 +53,7 @@ app.all('*', (req, res) => {
 		}
 
 		const allFiles = fse.readdirSync(folder);
-		const resourceWithExtn = allFiles.find((item) => item.match(new RegExp(`^${resource}\..+$`)));
+		const resourceWithExtn = allFiles.find((item) => new RegExp(`^${resource}[.].+$`).test(item));
 		if (!resourceWithExtn) {
 			res.status(404).end('mock file not found at the location');
 			return;
