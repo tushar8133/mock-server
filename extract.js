@@ -47,12 +47,6 @@ entries.forEach((entry) => {
             return;
         }
 
-        const isContentZero = entry.response.content.size;
-        if (isContentZero === 0) {
-            notes.zero.push(`${resource}`);
-            return;
-        }
-
         const allowedMethods = allowedRestMethods.includes(entry.request.method);
         if (!allowedMethods) {
             notes.method.push(`${entry.request.method}-${resource}`);

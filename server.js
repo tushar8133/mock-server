@@ -44,7 +44,7 @@ app.all('*', (req, res) => {
 			const fullPath = path.join(folder, req.body.operationName + '.json');
 			const isExist = fse.pathExistsSync(fullPath);
 			if (!isExist) {
-				res.status(404).json({ 'error': 'graphql file not found at the location'});
+				res.status(404).end('graphql file not found at the location');
 				return;
 			}
 			const fileData = fse.readJsonSync(fullPath);
@@ -54,14 +54,13 @@ app.all('*', (req, res) => {
 
 		const allFiles = fse.readdirSync(folder);
 		const resourceWithExtn = allFiles.find((item) => item.match(new RegExp(`^${resource}\..+$`)));
-		const fullPath = path.join(folder, resourceWithExtn);
-		const isExist = fse.pathExistsSync(fullPath);
-		if (!isExist) {
-			res.status(404).json({ 'error': 'mock file not found at the location'});
+		if (!resourceWithExtn) {
+			res.status(404).end('mock file not found at the location');
 			return;
 		}
 
-		const contentType = mimelib.contentType(fullPath);
+		const fullPath = path.join(folder, resourceWithExtn);
+		const contentType = mimelib.lookup(fullPath);
 		if (contentType) {
 			res.set('Content-Type', contentType);
 		}
@@ -69,7 +68,7 @@ app.all('*', (req, res) => {
 		const fileData = fse.readFileSync(fullPath);
 		
 		setTimeout(() => {
-			res.json(fileData);
+			res.send(Buffer.from(fileData));
 			--delayCounter;
 		}, ++delayCounter * config.RESPONSE_DELAY);
 
