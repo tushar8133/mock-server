@@ -15,6 +15,7 @@
     "nodemon": "*",
     "js-beautify": "*",
     "table": "*",
-    "lodash": "*"
+    "lodash": "*",
+    "mime-types": "*"
   }
 }

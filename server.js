@@ -4,6 +4,7 @@ const cors = require('cors');
 const fse = require('fs-extra');
 const path = require('path');
 const config = require('./config.js');
+const mimelib = require('mime-types');
 
 const folderName = config.HAR_FILE.replace(/\.har$/, '');
 const folder = path.join(config.DEFAULT_PATH, folderName);
@@ -37,16 +38,35 @@ app.all('*', (req, res) => {
 			return;
 		}
 
-		resource = (resource.toLowerCase() === 'graphql') ? (req.body.operationName || '') : resource;
-		// console.log('GRAPHQL variables >>>', req.body.variables);
-		// console.log('GRAPHQL query >>>', req.body.query);
-		const fullPath = path.join(folder, resource + '.json');
+		if (resource.toLowerCase() === 'graphql') {
+			// console.log('GRAPHQL variables >>>', req.body.variables);
+			// console.log('GRAPHQL query >>>', req.body.query);
+			const fullPath = path.join(folder, req.body.operationName + '.json');
+			const isExist = fse.pathExistsSync(fullPath);
+			if (!isExist) {
+				res.status(404).json({ 'error': 'mock file not found at the location'});
+				return;
+			}
+			const fileData = fse.readJsonSync(fullPath);
+			res.json(fileData);
+			return;
+		}
+
+		const allFiles = fse.readdirSync(folder);
+		const resourceWithExtn = allFiles.find((item) => item.match(new RegExp(`^${resource}\..$`)));
+		const fullPath = path.join(folder, resourceWithExtn);
 		const isExist = fse.pathExistsSync(fullPath);
 		if (!isExist) {
 			res.status(404).json({ 'error': 'mock file not found at the location'});
 			return;
 		}
-		const fileData = fse.readJsonSync(fullPath);
+
+		const contentType = mimelib.contentType(fullPath);
+		if (contentType) {
+			res.set('Content-Type', contentType);
+		}
+
+		const fileData = fse.readFileSync(fullPath);
 		
 		setTimeout(() => {
 			res.json(fileData);

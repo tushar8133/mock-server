@@ -5,6 +5,7 @@ const beautify = require('js-beautify');
 const table = require('table').table;
 const _ = require('lodash');
 const config = require('./config.js');
+const mimelib = require('mime-types');
 
 let harFile = config.HAR_FILE.replace(/\.har$/, '') + '.har';
 let folderName = harFile.replace(/\.har$/, '');
@@ -37,7 +38,7 @@ const notes = {
 const entries = fse.readJsonSync(harFile).log.entries;
 entries.forEach((entry) => {
 
-    const resource = new URL(entry.request.url).pathname.split('/').pop();
+    const resource = new URL(entry.request.url).pathname.replace(/\/$/, '').split('/').pop();
     
     try {
 
@@ -80,25 +81,25 @@ entries.forEach((entry) => {
         }
 
         const rawFileName = (resource.toLowerCase() === 'graphql') ? JSON.parse(entry.request.postData.text).operationName : resource;
-        const fullPath = path.join(folderName, rawFileName + '.json');
+        const extn = '.' + (mimelib.extension(mimeType) || 'json');
+        const fullPath = path.join(folderName, rawFileName + extn);
         let data = entry.response.content.text;
 
-        if (!allowMerge) {
+        if (allowMerge && extn === '.json') {
             const isFileExist = fse.pathExistsSync(fullPath);
-            isFileExist ? notes.duplicates.push(`${resource}`) : notes.created.push(`${resource}`);
+            if (isFileExist) {
+                const newData = JSON.parse(data);
+                const oldData = fse.readJsonSync(fullPath, { throws: false });
+                const mergedData = JSON.stringify(_.merge(oldData, newData));
+                data = beautify(mergedData);
+            }
+            isFileExist ? notes.merged.push(`${resource} ${rawFileName}`) : notes.created.push(`${resource} ${rawFileName}`);
             fse.outputFileSync(fullPath, String(data));
             return;
         }
-
+        
         const isFileExist = fse.pathExistsSync(fullPath);
-        if (isFileExist) {
-            const newData = JSON.parse(data);
-            const oldData = fse.readJsonSync(fullPath, { throws: false });
-            const mergedData = JSON.stringify(_.merge(oldData, newData));
-            data = beautify(mergedData);
-        }
-        isFileExist ? notes.merged.push(`${resource} ${rawFileName}`) : notes.created.push(`${resource} ${rawFileName}`);
-
+        isFileExist ? notes.duplicates.push(`${resource}`) : notes.created.push(`${resource}`);
         fse.outputFileSync(fullPath, String(data));
 
     } catch (e) {
