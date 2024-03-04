@@ -75,7 +75,7 @@ entries.forEach((entry) => {
         }
 
         const rawFileName = (resource.toLowerCase() === 'graphql') ? JSON.parse(entry.request.postData.text).operationName : resource;
-        const extn = '.' + (mimelib.extension(mimeType) || 'json');
+        const extn = '.' + (mimelib.extension(mimeType) || (mimeType.includes('javascript') ? 'js' : 'json'));
         const fullPath = path.join(folderName, rawFileName + extn);
         let data = entry.response.content.text;
 
