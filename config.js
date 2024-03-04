@@ -1,41 +1,25 @@
-const PORT = 3000;
-
-const HAR_FILE = "8888";
-
-const ALLOW_MERGE = true;
-
-const VERBOSE = true;
-
-const DEFAULT_PATH = "./";
-
-const RESPONSE_DELAY = 0;
-
-const ALLOWED_METHODS = [
-    'GET',
-    'POST',
-    'PUT',
-    'PATCH',
-    'DELETE'
-];
-
-const FILTER_MIMES = [
-	// 'application/json',
-    // 'application/javascript',
-	// 'application/x-javascript',
-	// 'image/svg+xml',
-	// 'text/css',
-	// 'text/html',
-	// 'text/javascript',
-	// 'text/plain'
-]
-
 module.exports = {
-    PORT,
-    HAR_FILE,
-    ALLOW_MERGE,
-    VERBOSE,
-    DEFAULT_PATH,
-    RESPONSE_DELAY,
-    ALLOWED_METHODS,
-    FILTER_MIMES
+    PORT: 3000,
+    HAR_FILE: "8888",
+    ALLOW_MERGE: true,
+    VERBOSE: true,
+    DEFAULT_PATH: "./",
+    RESPONSE_DELAY: 0,
+    ALLOWED_METHODS: [
+        'GET',
+        'POST',
+        'PUT',
+        'PATCH',
+        'DELETE'
+    ],
+    FILTER_MIMES: [
+        // 'application/json',
+        // 'application/javascript',
+        // 'application/x-javascript',
+        // 'image/svg+xml',
+        // 'text/css',
+        // 'text/html',
+        // 'text/javascript',
+        // 'text/plain'
+    ]
 }
