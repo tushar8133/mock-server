@@ -97,7 +97,7 @@ entries.forEach((entry) => {
             fse.outputFileSync(fullPath, String(data));
             return;
         }
-        
+
         const isFileExist = fse.pathExistsSync(fullPath);
         isFileExist ? notes.duplicates.push(`${resource}`) : notes.created.push(`${resource}`);
         fse.outputFileSync(fullPath, String(data));

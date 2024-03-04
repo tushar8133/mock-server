@@ -44,7 +44,7 @@ app.all('*', (req, res) => {
 			const fullPath = path.join(folder, req.body.operationName + '.json');
 			const isExist = fse.pathExistsSync(fullPath);
 			if (!isExist) {
-				res.status(404).json({ 'error': 'mock file not found at the location'});
+				res.status(404).json({ 'error': 'graphql file not found at the location'});
 				return;
 			}
 			const fileData = fse.readJsonSync(fullPath);
@@ -53,7 +53,7 @@ app.all('*', (req, res) => {
 		}
 
 		const allFiles = fse.readdirSync(folder);
-		const resourceWithExtn = allFiles.find((item) => item.match(new RegExp(`^${resource}\..$`)));
+		const resourceWithExtn = allFiles.find((item) => item.match(new RegExp(`^${resource}\..+$`)));
 		const fullPath = path.join(folder, resourceWithExtn);
 		const isExist = fse.pathExistsSync(fullPath);
 		if (!isExist) {
