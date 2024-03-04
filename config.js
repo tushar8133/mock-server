@@ -22,4 +22,4 @@ module.exports = {
         // 'text/javascript',
         // 'text/plain'
     ]
-}
+};
