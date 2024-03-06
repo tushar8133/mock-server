@@ -67,24 +67,24 @@ entries.forEach((entry) => {
             return;
         }
 
+        let data = entry.response.content.text;
+        let options = {};
+        if (entry.response.content.encoding === 'base64') {
+            data = data.split(';base64,').pop();
+            options.encoding = 'base64';
+        }
+
         if (resource.includes('.')) {
-            let data = entry.response.content.text;
-            let options = {};
-            if (entry.response.content.encoding === 'base64') {
-                data = data.split(';base64,').pop();
-                options.encoding = 'base64';
-            }
             const fullPath = path.join(folderName, resource);
             const isFileExist = fse.pathExistsSync(fullPath);
             isFileExist ? notes.duplicates.push(`${resource}`) : notes.created.push(`${resource}`);
             fse.outputFileSync(fullPath, String(data), options);
             return;
         }
-        
+
         const rawFileName = (resource.toLowerCase() === 'graphql') ? JSON.parse(entry.request.postData.text).operationName : resource;
         const extn = '.' + (mimelib.extension(mimeType) || (mimeType?.toLowerCase().includes('javascript') ? 'js' : 'json'));
         const fullPath = path.join(folderName, rawFileName + extn);
-        let data = entry.response.content.text;
 
         if (allowMerge && extn === '.json') {
             const isFileExist = fse.pathExistsSync(fullPath);
@@ -101,7 +101,7 @@ entries.forEach((entry) => {
 
         const isFileExist = fse.pathExistsSync(fullPath);
         isFileExist ? notes.duplicates.push(`${resource}`) : notes.created.push(`${resource}`);
-        fse.outputFileSync(fullPath, String(data));
+        fse.outputFileSync(fullPath, String(data), options);
 
     } catch (e) {
         notes.error.push(`${resource}-${e}`);

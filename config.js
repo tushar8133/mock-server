@@ -1,6 +1,6 @@
 module.exports = {
     PORT: 3000,
-    HAR_FILE: "8888",
+    HAR_FILE: "spacex",
     ALLOW_MERGE: true,
     VERBOSE: true,
     DEFAULT_PATH: "./",
