@@ -54,9 +54,9 @@ entries.forEach((entry) => {
             return;
         }
 
-        const isProtocolAllowed = allowedProtocols.includes(`${new URL(entry.request.url).protocol}:`);
+        const isProtocolAllowed = allowedProtocols.includes(new URL(entry.request.url).protocol?.toUpperCase().replace(/:/, ''));
         if (!isProtocolAllowed) {
-            notes.method.push(`${entry.request.protocol}-${resource}`);
+            notes.protocol.push(`${entry.request.protocol}-${resource}`);
             return;
         }
 
@@ -115,7 +115,7 @@ const summary = [
     [notes.duplicates.length, "Skipped Duplicate Files"],
     [notes.merged.length, "Files Merged"],
     [notes.method.length, "Skipped Unsupported Rest Methods"],
-    [notes.method.protocol, "Unsupported Protocols"],
+    [notes.protocol.length, "Unsupported Protocols"],
     [notes.root.length, "Skipped Root Page"],
     [notes.zero.length, "Skipped Zero Size Entries"],
     [notes.mimes.length, "Skipped Not Allowed Mimes (if mentioned)"],
