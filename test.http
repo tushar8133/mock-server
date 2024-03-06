@@ -1,15 +1,16 @@
 @TOKEN = Bearer a87sd6f8asdfb7b6s8d7f6a8s6dbf8sa6df9a6sd98bfa6sdf986asd9fa69s7d5f7z5xc76v5z7cxvb7
+@PORT = 3000
 
 ### Test
 GET https://jsonplaceholder.typicode.com/posts
 
 
 ### GET-LOCALHOST 
-GET http://localhost:4000/aaa/bbb/ccc/test?e=5
+GET http://localhost{{PORT}}/aaa/bbb/ccc/test?e=5
 
 
 ### POST-LOCALHOST
-POST http://localhost:4000/api/v1/sample HTTP/1.1
+POST http://localhost{{PORT}}/api/v1/sample HTTP/1.1
 Content-Type: application/json
 
 {
@@ -19,7 +20,7 @@ Content-Type: application/json
 
 
 ### GraphQL
-POST http://localhost:4000/graphql HTTP/1.1
+POST http://localhost{{PORT}}/graphql HTTP/1.1
 Content-Type: application/json
 X-REQUEST-TYPE: GraphQL
 Authorization: {{TOKEN}}
@@ -41,4 +42,21 @@ query MyTestQuery($id: String!, $customer: String, $product: String!) {
     "id": "1234",
     "customer": "9876",
     "product": "ABC"
+}
+
+### 
+POST https://main--spacex-l4uc6p.apollographos.net/graphql
+Content-Type: application/json
+X-REQUEST-TYPE: GraphQL
+
+query Launches {
+  launches {
+    id
+    details
+    mission_name
+    rocket {
+      rocket_name
+      rocket_type
+    }
+  }
 }

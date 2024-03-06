@@ -12,6 +12,10 @@ module.exports = {
         'PATCH',
         'DELETE'
     ],
+    ALLOWED_PROTOCOL: [
+        'HTTP',
+        'HTTPS'
+    ],
     FILTER_MIMES: [
         // 'application/json',
         // 'application/javascript',
